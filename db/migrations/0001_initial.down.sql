@@ -1,0 +1,4 @@
+use tux;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS api_keys;
+DROP TABLE IF EXISTS tux_config;
