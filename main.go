@@ -14,7 +14,7 @@ func main() {
 	// Define Routes
 	router.HandleFunc("/", HomeHandler)
 	router.HandleFunc("/about", AboutHandler)
-	// Define "API" Routes
+	// Define "API" Routes for Authentication
 	router.HandleFunc("/api/v1/users/create", ApiCreateUserRoute).Methods("POST")
 	router.HandleFunc("/api/v1/users/get", ApiGetUserRoute).Methods("POST")
 	router.HandleFunc("/api/v1/users/login", ApiAuthenticateUserRoute).Methods("POST")

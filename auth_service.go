@@ -84,16 +84,19 @@ func authMakeToken(userId int) (string, error) {
 func authGetUserInfo(userId string) (string, error) {
 	db := MakeDatabase()
 
-	rows := db.Query("SELECT username, email FROM users WHERE id = ?", userId);
+	rows := db.Query("SELECT username, email, time_created, status, admin FROM users WHERE id = ?", userId);
 	if !rows.Next() {
 		GenLogger(fmt.Sprintf("[Auth_Service::GetUserInfo] User %d is not found", userId), time.Now())
 	}
 	var username string
 	var email string
-	rows.Scan(&username, &email)
+	var timeCreated string
+	var status string
+	var admin string
+	rows.Scan(&username, &email, &timeCreated, &status, &admin)
 	rows.Close()
 
-	return fmt.Sprintf("id=%s,user=%s,email=%s", userId, username, email), nil
+	return fmt.Sprintf("id=%s,user=%s,email=%s,time_created=%s,status=%s,admin=%s", userId, username, email, timeCreated, status, admin), nil
 }
 
 func authChangePassword(userId int, oldPassword string, newPassword string) error {
