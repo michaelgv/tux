@@ -17,6 +17,8 @@ func main() {
 	// Define "API" Routes
 	router.HandleFunc("/api/v1/users/create", ApiCreateUserRoute).Methods("POST")
 	router.HandleFunc("/api/v1/users/get", ApiGetUserRoute).Methods("POST")
+	router.HandleFunc("/api/v1/users/login", ApiAuthenticateUserRoute).Methods("POST")
+	router.HandleFunc("/api/v1/users/changepassword", ApiAuthenticationChangePassword).Methods("POST")
 	// Listen On Server
 	log.Fatal(http.ListenAndServe(":8000", router))
 }

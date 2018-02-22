@@ -40,29 +40,45 @@ func authCheckPassword(password string, actualPasswordCombined string) bool {
 	return subtle.ConstantTimeCompare(actualPasswordHash, providedPasswordHash) == 1
 }
 
-func authLogin(username string, password string) (int, error) {
+func authLogin(username string, password string) (int, string, error) {
 	db := MakeDatabase()
 	if len(password) > 255 {
-		return 0, fmt.Errorf("password is too long, max length is %s", "255")
+		return 0, "", fmt.Errorf("password is too long, max length is %s", "255")
 	}
 
-	rows := db.Query("SELECT id, password FROM users WHERE username = ?", username)
+	rows := db.Query("SELECT id, password, token FROM users WHERE username = ?", username)
 	if !rows.Next() {
 		log.Printf("Authentication failure on user=%s: bad username (%s)", username, username)
-		return 0, fmt.Errorf("invalid_username=%s", username)
+		return 0, "", fmt.Errorf("invalid_username=%s", username)
 	}
 	var userId int
+	var token string
 	var actualPasswordCombined string
-	rows.Scan(&userId, &actualPasswordCombined)
+	rows.Scan(&userId, &actualPasswordCombined, &token)
 	rows.Close()
 
 	if authCheckPassword(password, actualPasswordCombined) {
 		log.Printf("Authentication successful for user=%s", username)
-		return userId, nil
+		token, err := authMakeToken(userId)
+		checkErr(err)
+		return userId, token, nil
 	} else {
 		log.Printf("Authentication failure on user=%s: bad username (%s)", username, username)
-		return 0, fmt.Errorf("invalid_username=%s", username)
+		return 0, "", fmt.Errorf("invalid_username=%s", username)
 	}
+}
+
+func MakeToken() string {
+	b := make([]byte, 32)
+	rand.Read(b)
+	return fmt.Sprintf("%x", b)
+}
+
+func authMakeToken(userId int) (string, error) {
+	db := MakeDatabase()
+	token := MakeToken()
+	db.Query("UPDATE users SET token = ? WHERE id = ?", token, userId)
+	return token, nil
 }
 
 func authGetUserInfo(userId string) (string, error) {
@@ -101,7 +117,14 @@ func authChangePassword(userId int, oldPassword string, newPassword string) erro
 	}
 }
 
-func authForceChangePassword(userId int, password string) {
+func authForceChangePassword(userId string, password string) {
 	db := MakeDatabase()
 	db.Exec("UPDATE users SET password = ? WHERE id = ?", authMakePassword(password), userId)
+}
+
+func authValidateToken(userId string, token string) bool {
+	db := MakeDatabase()
+	var validateToken int
+	db.QueryRow("SELECT COUNT(*) FROM users WHERE id = ? AND token = ?", userId, token).Scan(&validateToken)
+	return validateToken > 0
 }
