@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 	"fmt"
+	"log"
 )
 
 func WriteError(w http.ResponseWriter, details string) {
@@ -78,7 +79,7 @@ func ApiAuthenticateUserRoute(w http.ResponseWriter, r *http.Request) {
 	WriteSuccess(w, fmt.Sprintf("userId=%d,token=%s", userId, token)) // generic send back
 }
 
-func ApiAuthenticationChangePassword(w http.ResponseWriter, r *http.Request) {
+func ApiAuthenticationChangePasswordRoute(w http.ResponseWriter, r *http.Request) {
 	Logger("v1/Api/User/Changepassword", r, time.Now())
 	userId := r.FormValue("userId")
 	token := r.FormValue("token")
@@ -89,4 +90,32 @@ func ApiAuthenticationChangePassword(w http.ResponseWriter, r *http.Request) {
 	} else {
 		WriteError(w, "invalid token/id combo")
 	}
+}
+
+func makeUserJsonString(userId string, username string, email string, status string, admin string) string {
+	return fmt.Sprintf("{\"type\": \"user_record\", \"userId\": \"%s\", \"username\": \"%s\", \"email\": \"%s\", \"status\": \"%s\", \"admin\": \"%s\"}", userId, username, email, status, admin)
+}
+
+func ApiListUsersSafelyRoute(w http.ResponseWriter, r *http.Request) {
+	Logger("v1/Api/User/List", r, time.Now())
+	start := time.Now()
+	db := MakeDatabase()
+	rows := db.Query("SELECT id, username, email, status, admin FROM users WHERE status = ? OR status = ?", "new", "active")
+	defer rows.Close()
+	var userId string
+	var username string
+	var email string
+	var status string
+	var admin string
+	tempJson := ""
+	for rows.Next() {
+		rows.Scan(&userId, &username, &email, &status, &admin)
+		log.Printf("id=%s,user=%s,email=%s,status=%s,admin=%s", userId, username, email, status, admin)
+		tempJson = tempJson + makeUserJsonString(userId, username, email, status, admin)
+		tempJson = tempJson + ","
+	}
+	accountJson := fmt.Sprintf("[%s", tempJson)
+	accountJson = accountJson + fmt.Sprintf("{\"type\": \"last_record\", \"start_time\": \"%s\", \"time_since_start\": \"%s\"}]", start, time.Since(start))
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(accountJson))
 }
