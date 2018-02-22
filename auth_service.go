@@ -10,6 +10,7 @@ import (
 	"strings"
 	"crypto/subtle"
 	"log"
+	"time"
 )
 
 /**
@@ -62,6 +63,21 @@ func authLogin(username string, password string) (int, error) {
 		log.Printf("Authentication failure on user=%s: bad username (%s)", username, username)
 		return 0, fmt.Errorf("invalid_username=%s", username)
 	}
+}
+
+func authGetUserInfo(userId string) (string, error) {
+	db := MakeDatabase()
+
+	rows := db.Query("SELECT username, email FROM users WHERE id = ?", userId);
+	if !rows.Next() {
+		GenLogger(fmt.Sprintf("[Auth_Service::GetUserInfo] User %d is not found", userId), time.Now())
+	}
+	var username string
+	var email string
+	rows.Scan(&username, &email)
+	rows.Close()
+
+	return fmt.Sprintf("id=%s,user=%s,email=%s", userId, username, email), nil
 }
 
 func authChangePassword(userId int, oldPassword string, newPassword string) error {

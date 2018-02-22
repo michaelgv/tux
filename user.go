@@ -17,7 +17,7 @@ func UserCreate(username string, password string, email string) (int, error) {
 		}
 	}
 
-	result := db.Exec("INSERT INTO users (username, password, email) VALUES (?, ?, ?)", username, authMakePassword(password), email)
+	result := db.Exec("INSERT INTO users (username, password, email, token) VALUES (?, ?, ?, ?)", username, authMakePassword(password), email, authMakePassword("temporary_string"))
 	return result.LastInsertId(), nil
 }
 
