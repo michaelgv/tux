@@ -20,6 +20,8 @@ func main() {
 	router.HandleFunc("/api/v1/users/login", ApiAuthenticateUserRoute).Methods("POST")
 	router.HandleFunc("/api/v1/users/changepassword", ApiAuthenticationChangePasswordRoute).Methods("POST")
 	router.HandleFunc("/api/v1/users/list", ApiListUsersSafelyRoute).Methods("GET", "POST")
+	// Define "Internal API" Routes for Redis
+	router.HandleFunc("/api/v1/internal/redis/flush", ApiInternalFlushRedisCache).Methods("GET", "POST")
 	// Listen On Server
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
