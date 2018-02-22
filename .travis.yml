@@ -13,6 +13,7 @@ matrix:
 
 before_cache:
 - rm -rf $GOPATH/src/
+- rm -rf $GOPATH/pkg/
 
 cache:
   directories:
@@ -23,4 +24,5 @@ install:
 - go get github.com/gorilla/mux
 - go get github.com/go-sql-driver/mysql
 - go get golang.org/x/crypto/pbkdf2
+- go get github.com/go-redis/redis
 - go build
