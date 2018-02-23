@@ -15,6 +15,8 @@ import (
 
 /**
  * Make a secure password
+ * @param {string} password
+ * @return {string}
  */
 func authMakePassword(password string) string {
 	salt := make([]byte, 16)
