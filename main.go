@@ -21,6 +21,7 @@ func main() {
 	router.HandleFunc("/api/v1/users/changepassword", ApiAuthenticationChangePasswordRoute).Methods("POST")
 	router.HandleFunc("/api/v1/users/list", ApiListUsersSafelyRoute).Methods("GET", "POST")
 	router.HandleFunc("/api/v1/users/listactive", ApiListUsersWhoAreActive).Methods("GET", "POST")
+	router.HandleFunc("/api/v1/users/listnew", ApiListUsersWhoAreActive).Methods("GET", "POST")
 	// Define "Internal API" Routes for Redis
 	router.HandleFunc("/api/v1/internal/redis/flush", ApiInternalFlushRedisCache).Methods("GET", "POST")
 	// Listen On Server
