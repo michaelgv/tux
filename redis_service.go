@@ -39,6 +39,21 @@ func AccountListGetCache() (string, bool) {
 	return val, true
 }
 
+func AccountListActiveGetCache() (string, bool) {
+	client := NewRedisClient()
+	val, err := client.Get("accountlistactive").Result()
+	if err != nil {
+		return "", false
+	}
+	return val, true
+}
+
+func AccountListActiveSetCache(values string) (string, bool) {
+	client := NewRedisClient()
+	err := client.Set("accountlistactive", values, 300 * time.Second).Err()
+	checkErr(err)
+}
+
 func GenericRedisGet(key string) (string, bool) {
 	client := NewRedisClient()
 	val, err := client.Get("accountlist").Result()
@@ -54,5 +69,21 @@ func GenericRedisSet(key string, values string) bool {
 	if err != nil {
 		return false
 	}
+	return true
+}
+
+func GenericRedisUpdate(key, newValue string) (bool, error) {
+	if GenericRedisDelete(key) {
+		success := GenericRedisSet(key, newValue)
+		if success {
+			return true, nil
+		}
+	}
+	return false, fmt.Errorf("unknown_error_for_key=%s", key)
+}
+
+func GenericRedisDelete(key string) (bool) {
+	client := NewRedisClient()
+	client.Del(key)
 	return true
 }
