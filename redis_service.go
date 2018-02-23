@@ -55,6 +55,22 @@ func AccountListActiveSetCache(values string) (string, bool) {
 	return values, true
 }
 
+func AccountListNewGetCache() (string, bool) {
+	client := NewRedisClient()
+	val, err := client.Get("accountlistnew").Result()
+	if err != nil {
+		return "", false
+	}
+	return val, true
+}
+
+func AccountListNewSetCache(values string) (string, bool) {
+	client := NewRedisClient()
+	err := client.Set("accountlistnew", values, 300 * time.Second).Err()
+	checkErr(err)
+	return values, true
+}
+
 func GenericRedisGet(key string) (string, bool) {
 	client := NewRedisClient()
 	val, err := client.Get("accountlist").Result()

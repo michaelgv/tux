@@ -142,7 +142,7 @@ func ApiListUsersWhoAreActive(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(val))
 	} else {
 		db := MakeDatabase()
-		rows := db.Query("SELECT id, username, email, status, admin FROM users WHERE status = ?", "active");
+		rows := db.Query("SELECT id, username, email, status, admin FROM users WHERE status = ?", "active")
 		defer rows.Close()
 		var userId string
 		var username string
@@ -161,5 +161,36 @@ func ApiListUsersWhoAreActive(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(accountJson))
 		AccountListActiveSetCache(accountJson)
+	}
+}
+
+func ApiListUsersWhoAreNew(w http.ResponseWriter, r *http.Request) {
+	Logger("v1/Api/User/ListActive", r, time.Now())
+	start := time.Now()
+	val, exists := AccountListNewGetCache()
+	if exists {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(val))
+	} else {
+		db := MakeDatabase()
+		rows := db.Query("SELECT id, username, email, status, admin FROM users WHERE status = ?", "new")
+		defer rows.Close()
+		var userId string
+		var username string
+		var email string
+		var status string
+		var admin string
+		tempJson := ""
+		for rows.Next() {
+			rows.Scan(&userId, &username, &email, &status, &admin)
+			log.Printf("id=%s,user=%s,email=%s,status=%s,admin=%s", userId, username, email, status, admin)
+			tempJson = tempJson + makeUserJsonString(userId, username, "[hidden]", status, admin)
+			tempJson = tempJson + ","
+		}
+		accountJson := fmt.Sprintf("[%s", tempJson)
+		accountJson = accountJson + fmt.Sprintf("{\"type\": \"last_record\", \"start_time\": \"%s\", \"time_since_start\": \"%s\"}]", start, time.Since(start))
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(accountJson))
+		AccountListNewSetCache(accountJson)
 	}
 }
